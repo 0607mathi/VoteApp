@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results · Pupil Leader Election</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+    body {
+      background: #f0f4fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .app-header {
+      background: linear-gradient(145deg, #0b2a4a, #123b5e);
+      color: white;
+      padding: 1.2rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border-bottom: 4px solid #f5b041;
+    }
+    .app-header h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .app-header h1 small {
+      font-size: 1.2rem;
+      font-weight: 300;
+      display: block;
+      color: #f5d78e;
+      margin-top: 6px;
+      letter-spacing: 2px;
+    }
+    .app-header .sub {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-top: 4px;
+      border-top: 1px solid #3a6a8a;
+      padding-top: 8px;
+      display: inline-block;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.8rem 1.2rem;
+      flex: 1;
+      width: 100%;
+    }
+    .card {
+      background: white;
+      border-radius: 28px;
+      padding: 2rem 2rem 2.2rem;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+      border: 1px solid #eef4fa;
+      margin-bottom: 2rem;
+    }
+    .card-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 1.6rem;
+      color: #0b2a4a;
+      border-left: 6px solid #f5b041;
+      padding-left: 1rem;
+    }
+    .login-overlay {
+      background: #f8fafd;
+      border-radius: 40px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.8rem;
+      border: 1px solid #dce6f2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1.2rem;
+      align-items: flex-end;
+    }
+    .login-overlay input {
+      border: 1px solid #d0ddee;
+      padding: 0.7rem 1.2rem;
+      border-radius: 40px;
+      font-size: 1rem;
+      flex: 1 1 160px;
+      background: white;
+    }
+    .login-overlay button {
+      background: #0b2a4a;
+      color: white;
+      border: none;
+      padding: 0.7rem 2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .login-overlay button:hover {
+      background: #1d4b6e;
+    }
+    .login-overlay .msg {
+      font-weight: 500;
+      width: 100%;
+      color: #c0392b;
+    }
+    .login-overlay .msg.ok { color: #27ae60; }
+    .hidden { display: none !important; }
+
+    .result-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 1rem;
+    }
+    .result-row {
+      display: flex;
+      align-items: center;
+      background: #f8fafd;
+      border-radius: 60px;
+      padding: 0.6rem 1.8rem 0.6rem 1rem;
+      border: 1px solid #dfe9f2;
+      gap: 14px;
+    }
+    .result-row .rank {
+      font-weight: 700;
+      font-size: 1.3rem;
+      min-width: 52px;
+      color: #0b2a4a;
+    }
+    .result-row img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #b3c9e0;
+    }
+    .result-row .symbol-sm {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: white;
+      border: 1px solid #d0ddee;
+      padding: 3px;
+    }
+    .result-row .rname {
+      flex: 1;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    .result-row .rvotes {
+      background: #0b2a4a;
+      color: white;
+      padding: 0.25rem 1.4rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .text-muted { color: #4a657f; }
+    .text-center { text-align: center; }
+
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0 0.5rem;
+      align-items: center;
+    }
+    .btn-danger {
+      background: #c0392b;
+      color: white;
+      border: none;
+      padding: 0.7rem 2rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-danger:hover { background: #a93226; }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #0b2a4a;
+      color: #0b2a4a;
+      padding: 0.5rem 1.8rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-outline:hover { background: #eef4fa; }
+    .btn-warning {
+      background: #f39c12;
+      color: white;
+      border: none;
+      padding: 0.7rem 2rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-warning:hover { background: #d68910; }
+
+    .warning-box {
+      background: #fff3e0;
+      border-left: 6px solid #e67e22;
+      padding: 1rem 1.5rem;
+      border-radius: 28px;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .mt-2 { margin-top: 1.2rem; }
+    @media (max-width: 600px) {
+      .app-header h1 { font-size: 1.6rem; }
+      .result-row { padding: 0.5rem 1rem; gap: 10px; border-radius: 40px; }
+      .result-row img { width: 40px; height: 40px; }
+      .result-row .symbol-sm { width: 32px; height: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>🏫 ST Joseph's International School 
+    <small>School Pupil Leader Election</small>
+  </h1>
+  <div class="sub"><i class="fas fa-trophy"></i> · election results</div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <div class="card-title"><i class="fas fa-chart-simple"></i> Results</div>
+
+    <div class="login-overlay" id="resultLoginGate">
+      <input type="text" id="resultUser" placeholder="Username" value="admin">
+      <input type="password" id="resultPass" placeholder="Password" value="1234">
+      <button id="resultLoginBtn"><i class="fas fa-sign-in-alt"></i> Unlock</button>
+      <div class="msg" id="resultLoginMsg"></div>
+    </div>
+
+    <div id="resultContent" class="hidden">
+      <div id="resultList" class="result-grid"></div>
+      <div id="no-result-msg" class="text-muted text-center" style="padding: 1.5rem;">No votes yet.</div>
+
+      <div class="action-bar">
+        <button class="btn-danger" id="clearVotingBtn"><i class="fas fa-trash-alt"></i> Clear voting data</button>
+        <button class="btn-outline" id="refreshResultBtn"><i class="fas fa-sync"></i> Refresh</button>
+        <a href="index.html" class="btn-warning"><i class="fas fa-vote-yea"></i> Vote page</a>
+        <a href="admin.html" class="btn-warning" style="background:#0b2a4a;"><i class="fas fa-user-shield"></i> Admin</a>
+      </div>
+
+      <div id="clearWarningArea" class="warning-box mt-2 hidden">
+        <p><i class="fas fa-exclamation-triangle" style="color:#e67e22;"></i> <strong>Warning:</strong> This will permanently delete all votes.</p>
+        <div class="flex-row">
+          <input type="text" id="clearUser" placeholder="Username" value="admin">
+          <input type="password" id="clearPass" placeholder="Password" value="1234">
+          <button class="btn-danger" id="confirmClearBtn">Confirm clear votes</button>
+          <button class="btn-outline" id="cancelClearBtn">Cancel</button>
+        </div>
+        <span id="clearMsg" style="color:#c0392b;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const STORAGE_KEY = 'sjis_pupil_leader_data';
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) {
+        try { return JSON.parse(raw); } catch(e) {}
+      }
+      return { candidates: [], votes: [] };
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(electionData));
+    }
+
+    let electionData = loadData();
+
+    const resultLoginGate = document.getElementById('resultLoginGate');
+    const resultContent = document.getElementById('resultContent');
+    const resultLoginMsg = document.getElementById('resultLoginMsg');
+    const resultList = document.getElementById('resultList');
+    const noResultMsg = document.getElementById('no-result-msg');
+    const clearWarningArea = document.getElementById('clearWarningArea');
+    const clearMsg = document.getElementById('clearMsg');
+
+    // login
+    document.getElementById('resultLoginBtn').addEventListener('click', function() {
+      const user = document.getElementById('resultUser').value.trim();
+      const pass = document.getElementById('resultPass').value.trim();
+      if(user === 'admin' && pass === '1234') {
+        resultLoginGate.style.display = 'none';
+        resultContent.classList.remove('hidden');
+        resultLoginMsg.textContent = '';
+        renderResults();
+      } else {
+        resultLoginMsg.textContent = '✗ wrong credentials';
+        resultLoginMsg.className = 'msg';
+      }
+    });
+
+    function renderResults() {
+      const candidates = electionData.candidates;
+      const votes = electionData.votes;
+      if(candidates.length === 0) {
+        resultList.innerHTML = '';
+        noResultMsg.style.display = 'block';
+        return;
+      }
+      noResultMsg.style.display = 'none';
+
+      const voteMap = {};
+      candidates.forEach(c => { voteMap[c.id] = 0; });
+      votes.forEach(vid => { if(voteMap[vid] !== undefined) voteMap[vid]++; });
+
+      const sorted = [...candidates].sort((a,b) => voteMap[b.id] - voteMap[a.id]);
+      const ranks = ['🥇', '🥈', '🥉'];
+      resultList.innerHTML = sorted.map((c, idx) => {
+        const rankLabel = idx < 3 ? ranks[idx] : `#${idx+1}`;
+        return `
+          <div class="result-row">
+            <span class="rank">${rankLabel}</span>
+            <img src="${c.photo}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22/%3E'">
+            <img class="symbol-sm" src="${c.symbol}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22/%3E'">
+            <span class="rname">${c.name} (${c.grade})</span>
+            <span class="rvotes">${voteMap[c.id] || 0} vote${voteMap[c.id] !== 1 ? 's' : ''}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // clear votes with warning
+    document.getElementById('clearVotingBtn').addEventListener('click', function() {
+      clearWarningArea.classList.remove('hidden');
+      clearMsg.textContent = '';
+    });
+    document.getElementById('cancelClearBtn').addEventListener('click', function() {
+      clearWarningArea.classList.add('hidden');
+    });
+    document.getElementById('confirmClearBtn').addEventListener('click', function() {
+      const user = document.getElementById('clearUser').value.trim();
+      const pass = document.getElementById('clearPass').value.trim();
+      if(user === 'admin' && pass === '1234') {
+        electionData.votes = [];
+        saveData();
+        clearWarningArea.classList.add('hidden');
+        clearMsg.textContent = '✓ All votes cleared.';
+        clearMsg.style.color = '#27ae60';
+        renderResults();
+      } else {
+        clearMsg.textContent = '✗ wrong credentials';
+        clearMsg.style.color = '#c0392b';
+      }
+    });
+
+    document.getElementById('refreshResultBtn').addEventListener('click', function() {
+      if(!resultContent.classList.contains('hidden')) {
+        electionData = loadData();
+        renderResults();
+      }
+    });
+
+    // sync across tabs
+    window.addEventListener('storage', function(e) {
+      if(e.key === STORAGE_KEY) {
+        electionData = loadData();
+        if(!resultContent.classList.contains('hidden')) renderResults();
+      }
+    });
+
+  })();
+</script>
+</body>
+</html>
