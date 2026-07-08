@@ -11,6 +11,10 @@
       padding: 0;
       box-sizing: border-box;
       font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
     body {
       background: #f0f4fa;
@@ -26,12 +30,29 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       border-bottom: 4px solid #f5b041;
     }
-    .app-header h1 {
+    .app-header .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .app-header .logo-container {
+      flex-shrink: 0;
+    }
+    .app-header .logo-container img {
+      height: 60px;
+      width: auto;
+      border-radius: 8px;
+      background: white;
+      padding: 4px;
+    }
+    .app-header .title-container h1 {
       font-size: 2.2rem;
       font-weight: 600;
       letter-spacing: 1px;
     }
-    .app-header h1 small {
+    .app-header .title-container h1 small {
       font-size: 1.2rem;
       font-weight: 300;
       display: block;
@@ -137,6 +158,7 @@
       object-fit: cover;
       border-radius: 50%;
       border: 2px solid #b3c9e0;
+      pointer-events: none;
     }
     .result-row .symbol-sm {
       width: 40px;
@@ -146,6 +168,7 @@
       background: white;
       border: 1px solid #d0ddee;
       padding: 3px;
+      pointer-events: none;
     }
     .result-row .rname {
       flex: 1;
@@ -202,6 +225,18 @@
       display: inline-block;
     }
     .btn-warning:hover { background: #d68910; }
+    .btn-primary {
+      background: #0b2a4a;
+      color: white;
+      border: none;
+      padding: 0.7rem 2rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: #1d4b6e; }
 
     .warning-box {
       background: #fff3e0;
@@ -217,19 +252,33 @@
     }
     .mt-2 { margin-top: 1.2rem; }
     @media (max-width: 600px) {
-      .app-header h1 { font-size: 1.6rem; }
+      .app-header .title-container h1 { font-size: 1.6rem; }
+      .app-header .logo-container img { height: 40px; }
       .result-row { padding: 0.5rem 1rem; gap: 10px; border-radius: 40px; }
       .result-row img { width: 40px; height: 40px; }
       .result-row .symbol-sm { width: 32px; height: 32px; }
+    }
+    #schoolLogo {
+      height: 100px;
+      width: auto;
+      border-radius: 8px;
+      background: white;
+      padding: 4px;
     }
   </style>
 </head>
 <body>
 
 <header class="app-header">
-  <h1>🏫 ST Joseph's International School 
-    <small>School Pupil Leader Election</small>
-  </h1>
+  <div class="header-content">
+    <div class="logo-container">
+      <img id="schoolLogo" src="./stj logo.jpg" alt="School Logo">
+    <div class="title-container">
+      <h1>ST Joseph's International School 
+        <small>School Pupil Leader Election</small>
+      </h1>
+    </div>
+  </div>
   <div class="sub"><i class="fas fa-trophy"></i> · election results</div>
 </header>
 
@@ -252,7 +301,7 @@
         <button class="btn-danger" id="clearVotingBtn"><i class="fas fa-trash-alt"></i> Clear voting data</button>
         <button class="btn-outline" id="refreshResultBtn"><i class="fas fa-sync"></i> Refresh</button>
         <a href="index.html" class="btn-warning"><i class="fas fa-vote-yea"></i> Vote page</a>
-        <a href="admin.html" class="btn-warning" style="background:#0b2a4a;"><i class="fas fa-user-shield"></i> Admin</a>
+        <a href="admin.html" class="btn-primary"><i class="fas fa-user-shield"></i> Admin</a>
       </div>
 
       <div id="clearWarningArea" class="warning-box mt-2 hidden">
@@ -270,6 +319,21 @@
 </div>
 
 <script>
+  // Disable right click
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // Disable keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen' || 
+        (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P'))) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
   (function(){
     const STORAGE_KEY = 'sjis_pupil_leader_data';
 
@@ -295,7 +359,6 @@
     const clearWarningArea = document.getElementById('clearWarningArea');
     const clearMsg = document.getElementById('clearMsg');
 
-    // login
     document.getElementById('resultLoginBtn').addEventListener('click', function() {
       const user = document.getElementById('resultUser').value.trim();
       const pass = document.getElementById('resultPass').value.trim();
@@ -331,8 +394,8 @@
         return `
           <div class="result-row">
             <span class="rank">${rankLabel}</span>
-            <img src="${c.photo}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22/%3E'">
-            <img class="symbol-sm" src="${c.symbol}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22/%3E'">
+            <img src="${c.photo}" draggable="false" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22/%3E'">
+            <img class="symbol-sm" src="${c.symbol}" draggable="false" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22/%3E'">
             <span class="rname">${c.name} (${c.grade})</span>
             <span class="rvotes">${voteMap[c.id] || 0} vote${voteMap[c.id] !== 1 ? 's' : ''}</span>
           </div>
@@ -340,7 +403,6 @@
       }).join('');
     }
 
-    // clear votes with warning
     document.getElementById('clearVotingBtn').addEventListener('click', function() {
       clearWarningArea.classList.remove('hidden');
       clearMsg.textContent = '';
@@ -371,7 +433,6 @@
       }
     });
 
-    // sync across tabs
     window.addEventListener('storage', function(e) {
       if(e.key === STORAGE_KEY) {
         electionData = loadData();
