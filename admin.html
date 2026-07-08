@@ -11,6 +11,10 @@
       padding: 0;
       box-sizing: border-box;
       font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
     body {
       background: #f0f4fa;
@@ -26,12 +30,29 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       border-bottom: 4px solid #f5b041;
     }
-    .app-header h1 {
+    .app-header .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .app-header .logo-container {
+      flex-shrink: 0;
+    }
+    .app-header .logo-container img {
+      height: 60px;
+      width: auto;
+      border-radius: 8px;
+      background: white;
+      padding: 4px;
+    }
+    .app-header .title-container h1 {
       font-size: 2.2rem;
       font-weight: 600;
       letter-spacing: 1px;
     }
-    .app-header h1 small {
+    .app-header .title-container h1 small {
       font-size: 1.2rem;
       font-weight: 300;
       display: block;
@@ -179,6 +200,7 @@
       border-radius: 50%;
       border: 2px solid #b3c9e0;
       background: white;
+      pointer-events: none;
     }
     .candidate-item .symbol-img {
       width: 36px;
@@ -186,6 +208,7 @@
       object-fit: contain;
       border-radius: 8px;
       background: white;
+      pointer-events: none;
     }
     .candidate-item .info {
       flex: 1;
@@ -266,16 +289,31 @@
       color: #935e38;
     }
     @media (max-width: 600px) {
-      .app-header h1 { font-size: 1.6rem; }
+      .app-header .title-container h1 { font-size: 1.6rem; }
+      .app-header .logo-container img { height: 40px; }
+    }
+    #schoolLogo {
+      height: 100px;
+      width: auto;
+      border-radius: 8px;
+      background: white;
+      padding: 4px;
     }
   </style>
 </head>
 <body>
 
 <header class="app-header">
-  <h1>🏫 ST Joseph's International School 
-    <small>School Pupil Leader Election</small>
-  </h1>
+  <div class="header-content">
+    <div class="logo-container">
+      <img id="schoolLogo" src="./stj logo.jpg" alt="School Logo">
+    </div>
+    <div class="title-container">
+      <h1>ST Joseph's International School 
+        <small>School Pupil Leader Election</small>
+      </h1>
+    </div>
+  </div>
   <div class="sub"><i class="fas fa-user-shield"></i> · admin panel</div>
 </header>
 
@@ -322,6 +360,21 @@
 </div>
 
 <script>
+  // Disable right click
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // Disable keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen' || 
+        (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P'))) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
   (function(){
     const STORAGE_KEY = 'sjis_pupil_leader_data';
     const TARGET_MIN_KB = 20;
@@ -383,7 +436,6 @@
       addStatus.style.display = 'none';
     }
 
-    // Compress image to target size (20KB-50KB)
     function compressImageToTargetSize(file, maxWidth = 300, maxHeight = 300) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -393,7 +445,6 @@
             let width = img.width;
             let height = img.height;
             
-            // Start with reasonable dimensions
             let quality = 0.7;
             let currentWidth = Math.min(width, maxWidth);
             let currentHeight = (currentWidth / width) * height;
@@ -410,31 +461,25 @@
               const ctx = canvas.getContext('2d');
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
               
-              // Try JPEG first
               let dataUrl = canvas.toDataURL('image/jpeg', quality);
               
-              // Calculate size in KB
               const base64Length = dataUrl.length - dataUrl.indexOf(',') - 1;
               const sizeInKB = (base64Length * 3/4) / 1024;
               
-              console.log(`Compression attempt - Quality: ${quality}, Size: ${sizeInKB.toFixed(2)} KB`);
+              console.log(`Compression - Quality: ${quality}, Size: ${sizeInKB.toFixed(2)} KB`);
               
-              // Check if size is within target range (20-50 KB)
               if (sizeInKB >= TARGET_MIN_KB && sizeInKB <= TARGET_MAX_KB) {
                 return { dataUrl, sizeInKB };
               }
               
-              // If too large, try reducing quality
               if (sizeInKB > TARGET_MAX_KB && quality > 0.1) {
                 return null;
               }
               
-              // If too small and quality is already high, try increasing dimensions or quality
               if (sizeInKB < TARGET_MIN_KB && quality < 0.95) {
                 return null;
               }
               
-              // If too small and quality is max, try increasing dimensions
               if (sizeInKB < TARGET_MIN_KB && quality >= 0.95 && currentWidth < width) {
                 currentWidth = Math.min(currentWidth * 1.2, width);
                 currentHeight = (currentWidth / width) * height;
@@ -448,7 +493,6 @@
               return { dataUrl, sizeInKB };
             }
             
-            // Try different quality settings to hit target size
             let result = null;
             const qualities = [0.9, 0.7, 0.5, 0.3, 0.2, 0.1];
             
@@ -460,9 +504,7 @@
               }
             }
             
-            // If still no result, use the closest we can get
             if (!result) {
-              // Try one more time with quality 0.7
               const canvas = document.createElement('canvas');
               canvas.width = Math.round(Math.min(width, 200));
               canvas.height = Math.round((canvas.width / width) * height);
@@ -473,7 +515,6 @@
               const sizeInKB = (base64Length * 3/4) / 1024;
               result = { dataUrl, sizeInKB };
               
-              // If still too large, reduce quality further
               if (sizeInKB > TARGET_MAX_KB) {
                 dataUrl = canvas.toDataURL('image/jpeg', 0.3);
                 const newSize = ((dataUrl.length - dataUrl.indexOf(',') - 1) * 3/4) / 1024;
@@ -492,7 +533,6 @@
       });
     }
 
-    // login
     document.getElementById('adminLoginBtn').addEventListener('click', function() {
       const user = document.getElementById('adminUser').value.trim();
       const pass = document.getElementById('adminPass').value.trim();
@@ -508,7 +548,6 @@
       }
     });
 
-    // add candidate with image compression to 20-50KB
     document.getElementById('addCandBtn').addEventListener('click', async function() {
       const name = document.getElementById('candName').value.trim();
       const grade = document.getElementById('candGrade').value.trim();
@@ -517,7 +556,6 @@
       
       hideStatus();
 
-      // Validation
       if(!name) {
         showStatus('⚠️ Please enter student name', 'warning');
         return;
@@ -535,7 +573,6 @@
         return;
       }
 
-      // Check file types
       if(!photoFile.type.startsWith('image/')) {
         showStatus('⚠️ Photo must be an image file', 'warning');
         return;
@@ -545,13 +582,11 @@
         return;
       }
 
-      // Disable button
       const addBtn = document.getElementById('addCandBtn');
       addBtn.disabled = true;
       addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Compressing images...';
 
       try {
-        // Compress images to 20-50KB
         showStatus('📸 Compressing photo to 20-50KB...', 'info');
         const [photoResult, symbolResult] = await Promise.all([
           compressImageToTargetSize(photoFile),
@@ -575,7 +610,6 @@
           const totalKB = (photoResult.sizeInKB + symbolResult.sizeInKB);
           showStatus(`✅ Candidate added! Photo: ${photoResult.sizeInKB.toFixed(1)}KB, Symbol: ${symbolResult.sizeInKB.toFixed(1)}KB (Total: ${totalKB.toFixed(1)}KB)`, 'success');
           clearForm();
-          // Auto-hide success message after 4 seconds
           setTimeout(() => {
             if(addStatus.textContent.includes('✅')) {
               hideStatus();
@@ -598,7 +632,6 @@
       document.getElementById('candSymbol').value = '';
     }
 
-    // Delete candidate
     window.deleteCandidate = function(id) {
       if(!confirm('Remove this candidate? This will also remove their votes.')) return;
       
@@ -620,18 +653,16 @@
       }
       candidateListContainer.innerHTML = list.map(c => `
         <div class="candidate-item">
-          <img src="${c.photo}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22/%3E'">
-          <img class="symbol-img" src="${c.symbol}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22/%3E'">
+          <img src="${c.photo}" draggable="false" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22/%3E'">
+          <img class="symbol-img" src="${c.symbol}" draggable="false" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22/%3E'">
           <div class="info"><strong>${c.name}</strong><span>${c.grade}</span></div>
           <button class="del-btn" onclick="deleteCandidate(${c.id})"><i class="fas fa-trash"></i></button>
         </div>
       `).join('');
     }
 
-    // Expose deleteCandidate globally
     window.deleteCandidate = deleteCandidate;
 
-    // Sync across tabs
     window.addEventListener('storage', function(e) {
       if(e.key === STORAGE_KEY) {
         electionData = loadData();
@@ -641,12 +672,10 @@
       }
     });
 
-    // If already logged in (e.g., refresh), re-render
     if(adminLoginGate.style.display === 'none') {
       renderAdminCandidates();
     }
 
-    console.log('Admin panel ready. Images will be compressed to 20-50KB.');
   })();
 </script>
 </body>
